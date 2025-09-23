@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Titanic Survival Predictor</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Video background */
+        #bg-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5); /* semi-transparent overlay */
+            margin: 50px auto;
+            width: 400px;
+            border-radius: 10px;
+        }
+        input, select {
+            width: 80%;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="bg-video">
+        <source src="{{ url_for('static', filename='video/ship.mp4') }}" type="video/mp4">
+    </video>
+
+    <div class="content">
+        <h1>Titanic Survival Predictor</h1>
+        <form method="POST">
+            <input type="number" name="Pclass" placeholder="Pclass (1/2/3)" required><br>
+
+            <!-- Dropdown for Sex -->
+            <select name="Sex" required>
+                <option value="" disabled selected>Sex</option>
+                <option value="0">Male</option>
+                <option value="1">Female</option>
+            </select><br>
+
+            <input type="number" name="Age" placeholder="Age" required><br>
+            <input type="number" name="Fare" placeholder="Fare" required><br>
+
+            <!-- Dropdown for Embarked -->
+            <select name="Embarked" required>
+                <option value="" disabled selected>Embarked</option>
+                <option value="0">Southampton (S)</option>
+                <option value="1">Cherbourg (C)</option>
+                <option value="2">Queenstown (Q)</option>
+            </select><br>
+
+            <input type="number" name="Family" placeholder="Family Size" required><br>
+            <button type="submit">Predict</button>
+        </form>
+
+        {% if prediction %}
+            <h2>Prediction: {{ prediction }}</h2>
+        {% endif %}
+    </div>
+</body>
+</html>

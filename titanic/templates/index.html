@@ -1,86 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Titanic Survival Predictor</title>
-    <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        /* Video background */
-        #bg-video {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            min-width: 100%;
-            min-height: 100%;
-            z-index: -1;
-        }
-        .content {
-            position: relative;
-            z-index: 1;
-            padding: 20px;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.5); /* semi-transparent overlay */
-            margin: 50px auto;
-            width: 400px;
-            border-radius: 10px;
-        }
-        input, select {
-            width: 80%;
-            padding: 5px;
-            margin: 5px 0;
-            border-radius: 5px;
-            border: none;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
+
 <body>
     <video autoplay muted loop id="bg-video">
-        <source src="{{ url_for('static', filename='video/ship.mp4') }}" type="video/mp4">
+        <source src="{{ url_for('static', filename='video/vid_2.mp4') }}" type="video/mp4">
     </video>
 
-    <div class="content">
-        <h1>Titanic Survival Predictor</h1>
-        <form method="POST">
-            <input type="number" name="Pclass" placeholder="Pclass (1/2/3)" required><br>
+    <div class="overlay {% if prediction %}{{ 'success' if 'Survived' in prediction else 'danger' }}{% endif %}"
+        id="overlay"></div>
 
-            <!-- Dropdown for Sex -->
-            <select name="Sex" required>
-                <option value="" disabled selected>Sex</option>
-                <option value="0">Male</option>
-                <option value="1">Female</option>
-            </select><br>
+    <div class="container">
+        <!-- Welcome screen (only shown if no prediction yet) -->
+        {% if not prediction %}
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1 class="main-title">TITANIC</h1>
+            <button class="main-button" onclick="document.getElementById('formScreen').classList.add('active')">
+                Will You Survive?
+            </button>
+        </div>
+        {% endif %}
 
-            <input type="number" name="Age" placeholder="Age" required><br>
-            <input type="number" name="Fare" placeholder="Fare" required><br>
+        <!-- Form screen -->
+        <div class="form-screen {% if not prediction %}{% else %}hidden{% endif %}" id="formScreen">
+            <div class="form-container">
+                <h2 class="form-title">Passenger Information</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="pclass">Class</label>
+                        <select name="Pclass" id="pclass" required>
+                            <option value="1" {% if input_data and input_data['Pclass']==1 %}selected{% endif %}>First
+                                Class - Luxurious</option>
+                            <option value="2" {% if input_data and input_data['Pclass']==2 %}selected{% endif %}>Second
+                                Class - Moderate</option>
+                            <option value="3" {% if input_data and input_data['Pclass']==3 %}selected{% endif %}>Third
+                                Class - Economy</option>
+                        </select>
+                    </div>
 
-            <!-- Dropdown for Embarked -->
-            <select name="Embarked" required>
-                <option value="" disabled selected>Embarked</option>
-                <option value="0">Southampton (S)</option>
-                <option value="1">Cherbourg (C)</option>
-                <option value="2">Queenstown (Q)</option>
-            </select><br>
+                    <div class="form-group">
+                        <label for="sex">Gender</label>
+                        <select name="Sex">
+                            <option value="0" {% if input_data and input_data['Sex']==0 %}selected{% endif %}>Female
+                            </option>
+                            <option value="1" {% if input_data and input_data['Sex']==1 %}selected{% endif %}>Male
+                            </option>
+                        </select>
+                    </div>
 
-            <input type="number" name="Family" placeholder="Family Size" required><br>
-            <button type="submit">Predict</button>
-        </form>
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" name="Age" id="age" value="{{ input_data['Age'] if input_data else '' }}"
+                            placeholder="Your age (Between 0-80)" min="0" max="100" required>
+                    </div>
 
+                    <div class="form-group">
+                        <label for="embarked">Embarked</label>
+                        <select name="Embarked">
+                            <option value="0" {% if input_data and input_data['Embarked']==0 %}selected{% endif %}>
+                                Southampton</option>
+                            <option value="1" {% if input_data and input_data['Embarked']==1 %}selected{% endif %}>
+                                Cherbourg</option>
+                            <option value="2" {% if input_data and input_data['Embarked']==2 %}selected{% endif %}>
+                                Queenstown</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Family">Family Group</label>
+                        <select name="Family">
+                            <option value="0" {% if input_data and input_data['FamilyGroup']==0 %}selected{% endif %}>
+                                Alone</option>
+                            <option value="1" {% if input_data and input_data['FamilyGroup']==1 %}selected{% endif %}>
+                                Small Family</option>
+                            <option value="2" {% if input_data and input_data['FamilyGroup']==2 %}selected{% endif %}>
+                                Large Family</option>
+                        </select>
+                    </div>
+
+
+                    <button type="submit" class="predict-button">Will you survive?</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Result screen -->
         {% if prediction %}
-            <h2>Prediction: {{ prediction }}</h2>
+        <div class="result-screen active" id="resultScreen">
+            <div class="result-container">
+                <div class="result-title {{ 'survived' if 'Survived' in prediction else 'not-survived' }}">
+                    {{ prediction }}
+                </div>
+                <div class="result-message">
+                    {% if 'Survived' in prediction %}
+                    You made it to safety.
+                    {% else %}
+                    Sadly, you didn’t make it.
+                    {% endif %}
+                </div>
+                <button class="restart-button" onclick="window.location.href='/'">Try Again</button>
+            </div>
+        </div>
         {% endif %}
     </div>
 </body>
+
 </html>
